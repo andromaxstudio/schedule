@@ -481,10 +481,13 @@ def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
   for judul, df in daftar_pelayaran:
     pesan += f"*{judul}*\n"
     if not df.empty:
-      for _, row in df.iterrows():
-        pesan += f"• {row['Nama Kapal']} | ETA: {row['ETA']} | ETB: {row['ETB']} | ETD: {row['ETD']}\n"
+      for idx, (_, row) in enumerate(df.iterrows(), start=1):
+        pesan += f"  {idx}. {row['Nama Kapal']}\n"
+        pesan += f"     • ETA: {row['ETA']}\n"
+        pesan += f"     • ETB: {row['ETB']}\n"
+        pesan += f"     • ETD: {row['ETD']}\n"
     else:
-      pesan += "• _Data jadwal kosong_\n"
+      pesan += "  • _Data jadwal kosong_\n"
     pesan += "\n"
 
   pesan += f"📊 *Google Sheets Lengkap:*\n{link_sheets}"
@@ -543,8 +546,8 @@ def main():
 
   daftar_pelayaran = [
       ("SPIL", df_spil),
-      ("TEMAS", df_temas),
       ("TANTO", df_tanto),
+      ("TEMAS", df_temas),
   ]
 
   for judul, df in daftar_pelayaran:
