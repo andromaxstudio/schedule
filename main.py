@@ -482,7 +482,7 @@ def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
     pesan += f"*{judul}*\n"
     if not df.empty:
       for _, row in df.iterrows():
-        pesan += f"• {row['Nama Kapal']} | ETD: {row['ETD']}\n"
+        pesan += f"• {row['Nama Kapal']} | ETA: {row['ETA']} | ETB: {row['ETB']} | ETD: {row['ETD']}\n"
     else:
       pesan += "• _Data jadwal kosong_\n"
     pesan += "\n"
