@@ -125,7 +125,7 @@ def scrape_spil(page):
 
 def scrape_temas(page):
   # Menggunakan UTC+9 (WIT) agar tanggal selalu akurat sesuai waktu Manokwari
-  hari_ini = datetime.utcnow() + timedelta(hours=9)
+  hari_ini = datetime.now(timezone.utc) + timedelta(hours=9)
   satu_bulan_kedepan = hari_ini + timedelta(days=30)
 
   tgl_mulai = hari_ini.strftime("%Y-%m-%d")
@@ -452,25 +452,29 @@ def simpan_ke_google_sheets(daftar_pelayaran):
     })
 
     sh.batch_update({"requests": requests_styling})
-    print("   -> Sukses! Data & desain tabel berhasil diterapkan di Google Sheets.\n")
+    print(
+        "   -> Sukses! Data & desain tabel berhasil diterapkan di Google"
+        " Sheets.\n"
+    )
   except FileNotFoundError:
     print("   -> Gagal: File kunci credentials.json belum ditemukan.\n")
   except Exception as e:
     print("   -> Gagal mengirim ke Google Sheets:", e, "\n")
 
+
 def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
   print("5. Mengirim ringkasan jadwal ke WhatsApp...")
   token = os.environ.get("FONNTE_TOKEN")
-  target = os.environ.get("WA_TARGET")
+  target = os.environ.get("WA_TARGET") or "120363304947018243@g.us"
 
-  if not token or not target:
-    print("   -> Token Fonnte atau nomor tujuan WA belum diatur.\n")
+  if not token:
+    print("   -> Gagal: FONNTE_TOKEN belum diatur di GitHub Secrets.\n")
     return
 
   waktu_wit = (datetime.now(timezone.utc) + timedelta(hours=9)).strftime(
       "%d/%m/%Y %H:%M WIT"
   )
-  link_sheets = "https://google.com"
+  link_sheets = "https://docs.google.com/spreadsheets/d/1Kff0jGlzrMSYE8tt-q5V14QajC2fH---20su3l8S4tc"
 
   pesan = f"🚢 *UPDATE JADWAL KAPAL (MKW - SUB)*\n🕒 _{waktu_wit}_\n\n"
 
@@ -485,7 +489,7 @@ def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
 
   pesan += f"📊 *Google Sheets Lengkap:*\n{link_sheets}"
 
-  url = "https://fonnte.com"
+  url = "https://api.fonnte.com/send"
   headers = {"Authorization": token}
   payload = {
       "target": target,
@@ -494,12 +498,10 @@ def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
 
   try:
     response = requests.post(url, headers=headers, data=payload, timeout=15)
-    if response.status_code == 200:
-      print("   -> Sukses! Notifikasi berhasil dikirim ke WhatsApp.\n")
-    else:
-      print(f"   -> Gagal kirim WhatsApp: {response.text}\n")
+    print(f"   -> Respon Server Fonnte: {response.text}\n")
   except Exception as e:
     print(f"   -> Error koneksi WhatsApp: {e}\n")
+
 
 def main():
   print("=== MEMULAI PROSES SCRAPING JADWAL PELAYARAN ===\n")
@@ -556,6 +558,7 @@ def main():
     print()
 
   simpan_ke_google_sheets(daftar_pelayaran)
+  kirim_notifikasi_wa_fonnte(daftar_pelayaran)
 
 
 if __name__ == "__main__":
