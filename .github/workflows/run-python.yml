@@ -1,34 +1,35 @@
 name: Jalankan Python Jam 00.00 UTC
 
 on:
-  # Jadwal otomatis setiap hari tepat pukul 00.00 UTC (07.00 WIB / 09.00 WIT)
   schedule:
     - cron: '0 0 * * *'
-  
-  # Fitur tombol manual agar Anda bisa mengetes script kapan saja
   workflow_dispatch:
 
 jobs:
-  eksekusi-script:
+  run-scraper:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Mengambil kode dari repositori ke server GitHub Actions
       - name: Checkout kode
         uses: actions/checkout@v4
 
-      # 2. Menyiapkan Python versi 3.11
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 3. Menginstal library dari requirements.txt (jika file tersebut ada)
-      - name: Install dependencies
+      - name: Install library Python
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
 
-      # 4. Menjalankan file Python Anda (ganti main.py jika nama file berbeda)
-      - name: Jalankan Script Python
+      - name: Install Browser Playwright Chromium
+        run: playwright install --with-deps chromium
+
+      - name: Siapkan credentials.json
+        env:
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+        run: echo "$GCP_CREDENTIALS" > credentials.json
+
+      - name: Jalankan Script Scraping
         run: python main.py
