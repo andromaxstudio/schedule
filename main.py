@@ -1,6 +1,7 @@
 import calendar
 from datetime import datetime, timedelta
 from io import StringIO
+import os
 import random
 import re
 from urllib.parse import urlencode
@@ -122,8 +123,8 @@ def scrape_spil(page):
 
 
 def scrape_temas(page):
-  # Hitung tanggal hari ini sampai 1 bulan (30 hari) ke depan secara otomatis
-  hari_ini = datetime.now()
+  # Menggunakan UTC+9 (WIT) agar tanggal selalu akurat sesuai waktu Manokwari
+  hari_ini = datetime.utcnow() + timedelta(hours=9)
   satu_bulan_kedepan = hari_ini + timedelta(days=30)
 
   tgl_mulai = hari_ini.strftime("%Y-%m-%d")
@@ -189,7 +190,6 @@ def scrape_temas(page):
       print(f"   -> Kendala TEMAS (percobaan {percobaan}): {e}")
 
   return pd.DataFrame(columns=["Nama Kapal", "ETA", "ETB", "ETD"])
-
 
 
 def scrape_tanto(page):
@@ -277,7 +277,7 @@ def scrape_tanto(page):
 
 def simpan_ke_google_sheets(daftar_pelayaran):
   print("4. Mengirim data & mengatur tampilan ke Google Sheets...")
-  file_kunci = r"D:\Coding\Py\credentials.json"
+  file_kunci = "credentials.json"
   spreadsheet_id = "1Kff0jGlzrMSYE8tt-q5V14QajC2fH---20su3l8S4tc"
 
   warna_hijau_tua = {"red": 0.15, "green": 0.45, "blue": 0.25}
@@ -469,17 +469,13 @@ def main():
         "--disable-dev-shm-usage",
     ]
 
-    try:
-      browser = p.chromium.launch(
-          channel="chrome", headless=False, args=argumen_stealth
-      )
-    except Exception:
-      browser = p.chromium.launch(headless=False, args=argumen_stealth)
+    browser = p.chromium.launch(headless=True, args=argumen_stealth)
 
     context = browser.new_context(
         viewport={"width": 1366, "height": 768},
         locale="id-ID",
         timezone_id="Asia/Jayapura",
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     )
 
     context.add_init_script("""
