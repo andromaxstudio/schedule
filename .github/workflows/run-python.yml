@@ -31,5 +31,8 @@ jobs:
           GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
         run: echo "$GCP_CREDENTIALS" > credentials.json
 
-      - name: Jalankan Script Scraping
-        run: python main.py
+         - name: Jalankan Script Scraping
+     env:
+       FONNTE_TOKEN: ${{ secrets.FONNTE_TOKEN }}
+       WA_TARGET: ${{ secrets.WA_TARGET }}
+     run: python main.py
