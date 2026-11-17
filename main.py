@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from io import StringIO
 import os
 import random
@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 import gspread
 import pandas as pd
 from playwright.sync_api import sync_playwright
+import requests
 
 
 def jeda_manusia(page, min_detik=1.5, max_detik=3.0):
@@ -457,6 +458,48 @@ def simpan_ke_google_sheets(daftar_pelayaran):
   except Exception as e:
     print("   -> Gagal mengirim ke Google Sheets:", e, "\n")
 
+def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
+  print("5. Mengirim ringkasan jadwal ke WhatsApp...")
+  token = os.environ.get("FONNTE_TOKEN")
+  target = os.environ.get("WA_TARGET")
+
+  if not token or not target:
+    print("   -> Token Fonnte atau nomor tujuan WA belum diatur.\n")
+    return
+
+  waktu_wit = (datetime.now(timezone.utc) + timedelta(hours=9)).strftime(
+      "%d/%m/%Y %H:%M WIT"
+  )
+  link_sheets = "https://google.com"
+
+  pesan = f"🚢 *UPDATE JADWAL KAPAL (MKW - SUB)*\n🕒 _{waktu_wit}_\n\n"
+
+  for judul, df in daftar_pelayaran:
+    pesan += f"*{judul}*\n"
+    if not df.empty:
+      for _, row in df.iterrows():
+        pesan += f"• {row['Nama Kapal']} | ETD: {row['ETD']}\n"
+    else:
+      pesan += "• _Data jadwal kosong_\n"
+    pesan += "\n"
+
+  pesan += f"📊 *Google Sheets Lengkap:*\n{link_sheets}"
+
+  url = "https://fonnte.com"
+  headers = {"Authorization": token}
+  payload = {
+      "target": target,
+      "message": pesan,
+  }
+
+  try:
+    response = requests.post(url, headers=headers, data=payload, timeout=15)
+    if response.status_code == 200:
+      print("   -> Sukses! Notifikasi berhasil dikirim ke WhatsApp.\n")
+    else:
+      print(f"   -> Gagal kirim WhatsApp: {response.text}\n")
+  except Exception as e:
+    print(f"   -> Error koneksi WhatsApp: {e}\n")
 
 def main():
   print("=== MEMULAI PROSES SCRAPING JADWAL PELAYARAN ===\n")
