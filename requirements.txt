@@ -1,0 +1,5 @@
+gspread
+pandas
+playwright
+lxml
+html5lib
