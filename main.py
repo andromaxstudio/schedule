@@ -100,7 +100,7 @@ def scrape_spil(page):
         eta_str_awal = tgl_closing + " " + jam_etd
         eta_dt = pd.to_datetime(
             eta_str_awal, format="%d/%m/%Y %H:%M", errors="coerce"
-        )
+        ) + pd.Timedelta(days=1)
 
         etb_dt = eta_dt + pd.Timedelta(hours=1)
         etd_dt = etb_dt + pd.Timedelta(hours=24)
