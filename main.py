@@ -491,7 +491,7 @@ def simpan_ke_google_sheets(daftar_pelayaran):
 def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
   print("5. Mengirim ringkasan jadwal ke WhatsApp...")
   token = os.environ.get("FONNTE_TOKEN")
-  target = os.environ.get("WA_TARGET") or "120363304947018243@g.us"
+  target = os.environ.get("WA_TARGET")
 
   if not token:
     print("   -> Gagal: FONNTE_TOKEN belum diatur di GitHub Secrets.\n")
@@ -522,6 +522,7 @@ def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
   payload = {
       "target": target,
       "message": pesan,
+      "delay": "2-5",  # Opsional: jeda acak 2-5 detik antar grup agar aman
   }
 
   try:
