@@ -311,9 +311,11 @@ def simpan_ke_google_sheets(daftar_pelayaran):
       if not df.empty:
         baris_untuk_sheets.extend(df.values.tolist())
         baris_saat_ini += len(df)
+        ada_data = True
       else:
         baris_untuk_sheets.append(["Data jadwal kosong"])
         baris_saat_ini += 1
+        ada_data = False
       baris_akhir_data = baris_saat_ini - 1
 
       info_blok_tabel.append({
@@ -322,6 +324,7 @@ def simpan_ke_google_sheets(daftar_pelayaran):
           "baris_header": baris_header,
           "baris_awal_data": baris_awal_data,
           "baris_akhir_data": baris_akhir_data,
+          "ada_data": ada_data,
       })
 
       if idx < len(daftar_pelayaran) - 1:
@@ -403,6 +406,29 @@ def simpan_ke_google_sheets(daftar_pelayaran):
           }
       })
 
+      # Membuat kolom Nama Kapal (kolom A / index 0) menjadi huruf tebal jika ada data
+      if blok["ada_data"]:
+        requests_styling.append({
+            "repeatCell": {
+                "range": {
+                    "sheetId": sheet_id,
+                    "startRowIndex": blok["baris_awal_data"] - 1,
+                    "endRowIndex": blok["baris_akhir_data"],
+                    "startColumnIndex": 0,
+                    "endColumnIndex": 1,
+                },
+                "cell": {
+                    "userEnteredFormat": {
+                        "textFormat": {
+                            "bold": True,
+                        },
+                        "verticalAlignment": "MIDDLE",
+                    }
+                },
+                "fields": "userEnteredFormat(textFormat.bold,verticalAlignment)",
+            }
+        })
+
       requests_styling.append({
           "repeatCell": {
               "range": {
@@ -474,15 +500,14 @@ def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
   waktu_wit = (datetime.now(timezone.utc) + timedelta(hours=9)).strftime(
       "%d/%m/%Y %H:%M WIT"
   )
-  link_sheets = "https://docs.google.com/spreadsheets/d/1Kff0jGlzrMSYE8tt-q5V14QajC2fH---20su3l8S4tc"
 
-  pesan = f"🚢 *UPDATE JADWAL KAPAL (MKW - SUB)*\n🕒 _{waktu_wit}_\n\n"
+  pesan = f"*UPDATE JADWAL KAPAL (MKW - SUB)*\n_{waktu_wit}_\n\n"
 
   for judul, df in daftar_pelayaran:
     pesan += f"*{judul}*\n"
     if not df.empty:
       for idx, (_, row) in enumerate(df.iterrows(), start=1):
-        pesan += f"  {idx}. {row['Nama Kapal']}\n"
+        pesan += f"  {idx}. *{row['Nama Kapal']}*\n"
         pesan += f"     • ETA: {row['ETA']}\n"
         pesan += f"     • ETB: {row['ETB']}\n"
         pesan += f"     • ETD: {row['ETD']}\n"
@@ -490,7 +515,7 @@ def kirim_notifikasi_wa_fonnte(daftar_pelayaran):
       pesan += "  • _Data jadwal kosong_\n"
     pesan += "\n"
 
-  pesan += f"📊 *Google Sheets Lengkap:*\n{link_sheets}"
+  pesan = pesan.rstrip()
 
   url = "https://api.fonnte.com/send"
   headers = {"Authorization": token}
