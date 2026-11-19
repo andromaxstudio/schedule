@@ -1,4 +1,4 @@
-name: Jalankan Python Jam 00.00 UTC
+name: Jalankan Schedule
 
 on:
   schedule:
