@@ -2,7 +2,7 @@ name: Jalankan Schedule
 
 on:
   schedule:
-    - cron: '55 21 * * *' # Berjalan pada 21.55 UTC (06.55 WIT)
+    - cron: '00 17 * * *' # Berjalan pada 17.00 UTC (07.00 WIT)
   workflow_dispatch:
 
 jobs:
